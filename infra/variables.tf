@@ -31,7 +31,7 @@ variable "machine_type" {
 variable "node_count" {
   description = "Fixed number of nodes (no autoscaling, to keep cost predictable and minimal)."
   type        = number
-  default     = 1
+  default     = 3
 }
 
 variable "disk_size_gb" {
