@@ -9,5 +9,5 @@ resource "helm_release" "argocd" {
   values = [file("${path.module}/argocd.yaml")]
 
   depends_on = [google_container_node_pool.primary_nodes]
-  timeout = 6000
- }
+  timeout    = 6000
+}

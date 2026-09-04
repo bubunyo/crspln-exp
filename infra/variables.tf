@@ -57,3 +57,9 @@ variable "enable_logging_monitoring" {
   type        = bool
   default     = false
 }
+
+variable "github_repo" {
+  description = "GitHub repo (owner/name) allowed to assume the CI service account via Workload Identity Federation."
+  type        = string
+  default     = "bubunyo/crspln-exp"
+}
