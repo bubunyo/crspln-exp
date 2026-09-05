@@ -2,7 +2,8 @@ FROM golang:1.24 AS build
 WORKDIR /src
 COPY go.mod .
 COPY main.go .
-RUN CGO_ENABLED=0 go build -o /app .
+ARG COMMIT=unknown
+RUN CGO_ENABLED=0 go build -ldflags "-X main.commit=${COMMIT}" -o /app .
 
 FROM gcr.io/distroless/static
 COPY --from=build /app /app

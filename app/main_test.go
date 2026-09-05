@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestJobHandlerAccepted(t *testing.T) {
@@ -17,15 +19,11 @@ func TestJobHandlerAccepted(t *testing.T) {
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusAccepted {
-		t.Fatalf("expected 202 got %d", rec.Code)
-	}
+	require.Equal(t, http.StatusAccepted, rec.Code)
 
 	select {
 	case j := <-queue:
-		if j.Webhook != "http://example.com" {
-			t.Fatalf("unexpected webhook %q", j.Webhook)
-		}
+		require.Equal(t, "http://example.com", j.Webhook)
 	default:
 		t.Fatal("job not queued")
 	}
@@ -42,9 +40,7 @@ func TestJobHandlerBadRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/jobs", strings.NewReader(c))
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
-		if rec.Code != http.StatusBadRequest {
-			t.Fatalf("expected 400 got %d for %q", rec.Code, c)
-		}
+		require.Equal(t, http.StatusBadRequest, rec.Code, "case %q", c)
 	}
 }
 
@@ -55,9 +51,7 @@ func TestJobHandlerMethodNotAllowed(t *testing.T) {
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusMethodNotAllowed {
-		t.Fatalf("expected 405 got %d", rec.Code)
-	}
+	require.Equal(t, http.StatusMethodNotAllowed, rec.Code)
 }
 
 func TestJobHandlerQueueFull(t *testing.T) {
@@ -68,38 +62,34 @@ func TestJobHandlerQueueFull(t *testing.T) {
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusServiceUnavailable {
-		t.Fatalf("expected 503 got %d", rec.Code)
-	}
+	require.Equal(t, http.StatusServiceUnavailable, rec.Code)
 }
 
 func TestHealthHandlerLivez(t *testing.T) {
 	var ready atomic.Bool
-	h := newHealthHandler(&ready)
+	h := newHealthHandler(&ready, "abc123")
 	rec := httptest.NewRecorder()
 	h.livez(rec, httptest.NewRequest(http.MethodGet, "/livez", nil))
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200 got %d", rec.Code)
-	}
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var body map[string]string
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&body))
+	require.Equal(t, "abc123", body["commit"])
 }
 
 func TestHealthHandlerReadyz(t *testing.T) {
 	var ready atomic.Bool
-	h := newHealthHandler(&ready)
+	h := newHealthHandler(&ready, "abc123")
 
 	rec := httptest.NewRecorder()
 	h.readyz(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
-	if rec.Code != http.StatusServiceUnavailable {
-		t.Fatalf("expected 503 got %d", rec.Code)
-	}
+	require.Equal(t, http.StatusServiceUnavailable, rec.Code)
 
 	ready.Store(true)
 	rec = httptest.NewRecorder()
 	h.readyz(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200 got %d", rec.Code)
-	}
+	require.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestWebhookHandlerHandle(t *testing.T) {
@@ -117,9 +107,8 @@ func TestWebhookHandlerHandle(t *testing.T) {
 
 	select {
 	case res := <-received:
-		if res.ID != "1" || res.Status != "done" {
-			t.Fatalf("unexpected result %+v", res)
-		}
+		require.Equal(t, "1", res.ID)
+		require.Equal(t, "done", res.Status)
 	case <-time.After(3 * time.Second):
 		t.Fatal("webhook not called")
 	}

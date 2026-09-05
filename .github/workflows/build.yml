@@ -27,6 +27,8 @@ jobs:
         with:
           context: app
           push: false
+          build-args: |
+            COMMIT=${{ github.sha }}
 
   build-and-push:
     if: github.event_name == 'push'
@@ -44,5 +46,7 @@ jobs:
         with:
           context: app
           push: true
+          build-args: |
+            COMMIT=${{ github.sha }}
           tags: |
             us-central1-docker.pkg.dev/infra-exp-506709/images/app:${{ github.sha }}

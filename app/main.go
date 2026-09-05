@@ -36,6 +36,7 @@ const (
 )
 
 var jobCounter int64
+var commit = "unknown"
 
 type jobHandler struct {
 	queue chan<- job
@@ -94,15 +95,16 @@ func worker(queue <-chan job, wg *sync.WaitGroup, wh *webhookHandler) {
 }
 
 type healthHandler struct {
-	ready *atomic.Bool
+	ready  *atomic.Bool
+	commit string
 }
 
-func newHealthHandler(ready *atomic.Bool) *healthHandler {
-	return &healthHandler{ready: ready}
+func newHealthHandler(ready *atomic.Bool, commit string) *healthHandler {
+	return &healthHandler{ready: ready, commit: commit}
 }
 
 func (h *healthHandler) livez(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"commit": h.commit})
 }
 
 func (h *healthHandler) readyz(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +127,7 @@ func main() {
 
 	var ready atomic.Bool
 	ready.Store(true)
-	hh := newHealthHandler(&ready)
+	hh := newHealthHandler(&ready, commit)
 
 	mux := http.NewServeMux()
 	mux.Handle("/jobs", newJobHandler(queue))
