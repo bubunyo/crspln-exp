@@ -33,6 +33,9 @@ jobs:
   build-and-push:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: google-github-actions/auth@v2
@@ -50,3 +53,15 @@ jobs:
             COMMIT=${{ github.sha }}
           tags: |
             us-central1-docker.pkg.dev/infra-exp-506709/images/app:${{ github.sha }}
+      - run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+      - run: |
+          cd gitops/overlays/prod
+          kustomize edit set image us-central1-docker.pkg.dev/infra-exp-506709/images/app=us-central1-docker.pkg.dev/infra-exp-506709/images/app:${{ github.sha }}
+          cd ../../..
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gitops/overlays/prod/kustomization.yaml
+          git diff --cached --quiet || git commit -m "deploy: bump app image to ${{ github.sha }}"
+          git push

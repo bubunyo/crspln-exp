@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+// build trigger: 1
+
 type job struct {
 	ID      string          `json:"id"`
 	Webhook string          `json:"webhook"`
