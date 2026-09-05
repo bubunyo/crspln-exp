@@ -6,6 +6,6 @@ namespace: app
 images:
 - name: us-central1-docker.pkg.dev/infra-exp-506709/images/app
   newName: us-central1-docker.pkg.dev/infra-exp-506709/images/app
-  newTag: 01e753530f5cc9b2574501332807b76da3106155
+  newTag: cc344a1207d55300d6f781dd0bea00c55821bced
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
