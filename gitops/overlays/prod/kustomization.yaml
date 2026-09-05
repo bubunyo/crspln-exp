@@ -1,8 +1,11 @@
 resources:
-  - ../../base
+- ../../base
 
 namespace: app
 
 images:
-  - name: us-central1-docker.pkg.dev/infra-exp-506709/images/app
-    newTag: placeholder
+- name: us-central1-docker.pkg.dev/infra-exp-506709/images/app
+  newName: us-central1-docker.pkg.dev/infra-exp-506709/images/app
+  newTag: 0027490098c55a8cd3659c0f1da64ae97e4ebd8b
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
