@@ -118,6 +118,7 @@ func (h *healthHandler) readyz(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Print("application starting up...")
 	queue := make(chan job, queueSize)
 	var wg sync.WaitGroup
 	wh := newWebhookHandler()
@@ -148,10 +149,12 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+	log.Print("application startup completed")
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
+	log.Print("application shutting down...")
 
 	ready.Store(false)
 
@@ -171,4 +174,6 @@ func main() {
 	case <-done:
 	case <-ctx.Done():
 	}
+
+	log.Print("application shut down complete")
 }
