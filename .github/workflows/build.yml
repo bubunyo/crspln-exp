@@ -2,10 +2,10 @@ name: build
 
 on:
   pull_request:
-    branches: [main]
+    branches: [master]
     paths: [app/**]
   push:
-    branches: [main]
+    branches: [master]
     paths: [app/**]
 
 permissions:
