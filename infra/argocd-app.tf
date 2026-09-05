@@ -10,7 +10,7 @@ resource "kubernetes_manifest" "app" {
       project = "default"
       source = {
         repoURL        = "https://github.com/${var.github_repo}.git"
-        targetRevision = "main"
+        targetRevision = "master"
         path           = "gitops/overlays/prod"
       }
       destination = {
