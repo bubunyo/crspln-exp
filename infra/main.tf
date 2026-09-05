@@ -34,10 +34,11 @@ resource "google_container_node_pool" "primary_nodes" {
   node_count = var.node_count
 
   node_config {
-    machine_type = var.machine_type
-    disk_size_gb = var.disk_size_gb
-    disk_type    = var.disk_type
-    spot         = var.use_spot
+    machine_type    = var.machine_type
+    disk_size_gb    = var.disk_size_gb
+    disk_type       = var.disk_type
+    spot            = var.use_spot
+    service_account = google_service_account.gke_node.email
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
