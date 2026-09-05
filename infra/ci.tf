@@ -37,6 +37,30 @@ resource "google_project_iam_member" "ci_service_account_viewer" {
   member  = "serviceAccount:${google_service_account.ci.email}"
 }
 
+resource "google_project_iam_member" "ci_project_iam_admin" {
+  project = var.project_id
+  role    = "roles/resourcemanager.projectIamAdmin"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
+resource "google_project_iam_member" "ci_artifactregistry_admin" {
+  project = var.project_id
+  role    = "roles/artifactregistry.admin"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
+resource "google_project_iam_member" "ci_workload_identity_pool_admin" {
+  project = var.project_id
+  role    = "roles/iam.workloadIdentityPoolAdmin"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
+resource "google_project_iam_member" "ci_service_account_admin" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountAdmin"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
 resource "google_storage_bucket_iam_member" "ci_tfstate_access" {
   bucket = data.google_storage_bucket.tfstate.name
   role   = "roles/storage.admin"
