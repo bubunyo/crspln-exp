@@ -4,6 +4,12 @@ resource "google_project_service" "sts" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "cloudresourcemanager" {
+  project            = var.project_id
+  service            = "cloudresourcemanager.googleapis.com"
+  disable_on_destroy = false
+}
+
 data "google_storage_bucket" "tfstate" {
   name = "${var.project_id}-tfstate"
 }
@@ -19,9 +25,21 @@ resource "google_project_iam_member" "ci_container_admin" {
   member  = "serviceAccount:${google_service_account.ci.email}"
 }
 
+resource "google_project_iam_member" "ci_compute_viewer" {
+  project = var.project_id
+  role    = "roles/compute.viewer"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
+resource "google_project_iam_member" "ci_service_account_viewer" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountViewer"
+  member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
 resource "google_storage_bucket_iam_member" "ci_tfstate_access" {
   bucket = data.google_storage_bucket.tfstate.name
-  role   = "roles/storage.objectAdmin"
+  role   = "roles/storage.admin"
   member = "serviceAccount:${google_service_account.ci.email}"
 }
 
