@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"os"
@@ -118,7 +118,9 @@ func (h *healthHandler) readyz(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	log.Print("application starting up...")
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
+
+	slog.Info("application starting up")
 	queue := make(chan job, queueSize)
 	var wg sync.WaitGroup
 	wh := newWebhookHandler()
@@ -146,15 +148,16 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			slog.Error("server error", "err", err)
+			os.Exit(1)
 		}
 	}()
-	log.Print("application startup completed")
+	slog.Info("application startup completed")
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
-	log.Print("application shutting down...")
+	slog.Info("application shutting down")
 
 	ready.Store(false)
 
@@ -175,5 +178,5 @@ func main() {
 	case <-ctx.Done():
 	}
 
-	log.Print("application shut down complete")
+	slog.Info("application shut down complete")
 }
