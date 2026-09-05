@@ -1,0 +1,8 @@
+resources:
+  - ../../base
+
+namespace: app
+
+images:
+  - name: us-central1-docker.pkg.dev/infra-exp-506709/images/app
+    newTag: placeholder
