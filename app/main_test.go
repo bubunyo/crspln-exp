@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -69,6 +70,35 @@ func TestJobHandlerQueueFull(t *testing.T) {
 
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("expected 503 got %d", rec.Code)
+	}
+}
+
+func TestHealthHandlerLivez(t *testing.T) {
+	var ready atomic.Bool
+	h := newHealthHandler(&ready)
+	rec := httptest.NewRecorder()
+	h.livez(rec, httptest.NewRequest(http.MethodGet, "/livez", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 got %d", rec.Code)
+	}
+}
+
+func TestHealthHandlerReadyz(t *testing.T) {
+	var ready atomic.Bool
+	h := newHealthHandler(&ready)
+
+	rec := httptest.NewRecorder()
+	h.readyz(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 got %d", rec.Code)
+	}
+
+	ready.Store(true)
+	rec = httptest.NewRecorder()
+	h.readyz(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 got %d", rec.Code)
 	}
 }
 

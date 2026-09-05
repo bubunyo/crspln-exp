@@ -93,6 +93,26 @@ func worker(queue <-chan job, wg *sync.WaitGroup, wh *webhookHandler) {
 	}
 }
 
+type healthHandler struct {
+	ready *atomic.Bool
+}
+
+func newHealthHandler(ready *atomic.Bool) *healthHandler {
+	return &healthHandler{ready: ready}
+}
+
+func (h *healthHandler) livez(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *healthHandler) readyz(w http.ResponseWriter, r *http.Request) {
+	if !h.ready.Load() {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	queue := make(chan job, queueSize)
 	var wg sync.WaitGroup
@@ -103,8 +123,14 @@ func main() {
 		go worker(queue, &wg, wh)
 	}
 
+	var ready atomic.Bool
+	ready.Store(true)
+	hh := newHealthHandler(&ready)
+
 	mux := http.NewServeMux()
 	mux.Handle("/jobs", newJobHandler(queue))
+	mux.HandleFunc("/livez", hh.livez)
+	mux.HandleFunc("/readyz", hh.readyz)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -122,6 +148,8 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
+
+	ready.Store(false)
 
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
