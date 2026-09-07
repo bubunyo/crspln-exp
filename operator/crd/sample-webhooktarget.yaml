@@ -1,0 +1,6 @@
+apiVersion: platform.crspln-exp.io/v1alpha1
+kind: WebhookTarget
+metadata:
+  name: sample
+  namespace: app
+spec: {}
